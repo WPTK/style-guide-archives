@@ -19,16 +19,10 @@ Inside each repository, files are named `<category>/<organization>/<year>-<title
 
 ## The catalog
 
-[`CATALOG.md`](CATALOG.md) lists where each guide lives online, including the many that are not archived yet. Each row has a rights note and a link check. Sections 7 and 8 list the guides still wanted and the gaps in coverage.
+[`CATALOG.md`](CATALOG.md) lists where each guide lives online, including the many that are not archived yet. Sections 7 and 8 list the guides still wanted and the gaps in coverage.
 
 ## Large files
 
 Files of 100 MB or more are stored with [Git LFS](https://git-lfs.com). Run `git lfs install` before you clone, or those files will arrive as small pointer files instead of PDFs.
-
-## Rights
-
-These are copies of documents published elsewhere. Copyright stays with the original owners. Many are US government works or US publications from before 1931, which are in the public domain in the United States. The rest were published free by their owners or are third-party scans, and they are here for reference and research. `CATALOG.md` marks the rights status of each one.
-
-If you own the rights to something here and want it removed, open an issue naming the file.
 
 Know of a guide that is missing? Open an issue with a link.
