@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="{{ site.lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ site.title }}</title>
+<meta name="description" content="{{ site.description | strip | escape }}">
+<link rel="preload" href="{{ '/assets/fonts/bespoke-slab.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+<link rel="icon" href="{{ '/assets/favicon.svg' | relative_url }}" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#list">Skip to the list</a>
+{{ content }}
+</body>
+</html>

@@ -1,0 +1,20 @@
+title: Style Guide Archives
+description: >-
+  Identity manuals, sign systems, editorial style books and interface guidelines,
+  collected as PDFs.
+url: "https://wptk.github.io"
+baseurl: "/style-guide-archives"
+lang: en
+
+markdown: kramdown
+
+defaults:
+  - scope: { path: "" }
+    values: { layout: default }
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .jekyll-cache

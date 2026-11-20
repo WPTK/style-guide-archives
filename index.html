@@ -1,0 +1,51 @@
+---
+title: Style Guide Archives
+---
+{%- assign data = site.data.guides -%}
+{%- assign total = data.guides | size -%}
+<main class="page">
+  <h1>Style Guide Archives</h1>
+
+  <div class="tools" role="search">
+    <label class="field"><span>Search</span><input id="q" type="search" autocomplete="off" spellcheck="false"></label>
+    <label class="field"><span>Sort</span>
+      <select id="s">
+        <option value="n">Organization</option>
+        <option value="t">Title</option>
+        <option value="o">Oldest first</option>
+        <option value="w">Newest first</option>
+      </select>
+    </label>
+    <p class="count" id="count" role="status">{{ total }} guides</p>
+  </div>
+
+  <div class="cats" role="group" aria-label="Category">
+    <button type="button" data-c="" aria-pressed="true">All</button>
+    {%- for c in data.categories %}
+    <button type="button" data-c="{{ c.slug }}" aria-pressed="false">{{ c.label }}</button>
+    {%- endfor %}
+  </div>
+
+  <table id="list">
+    <caption class="sr">Guides</caption>
+    <thead>
+      <tr><th scope="col">Title</th><th scope="col">Organization</th><th scope="col">Year</th><th scope="col">Size</th></tr>
+    </thead>
+    <tbody>
+    {%- for g in data.guides %}
+      <tr data-n="{{ forloop.index0 }}" data-c="{{ g.c }}" data-ys="{{ g.ys }}">
+        <td class="t"><a href="{{ g.u }}">{{ g.t | escape }}</a></td>
+        <td class="o">{{ g.o | escape }}</td>
+        <td class="y">{{ g.y }}</td>
+        <td class="s">{{ g.s }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+
+  <div class="none" id="none" hidden>
+    <p>No guides match.</p>
+    <button type="button" id="clear">Clear search</button>
+  </div>
+</main>
+<script src="{{ '/assets/js/list.js' | relative_url }}" defer></script>
