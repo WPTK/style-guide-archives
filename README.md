@@ -4,7 +4,7 @@ A public archive of style guides from around the world: brand identity manuals a
 
 ## Where the guides are
 
-The archive holds 976 files (975 PDFs and one EPUB, 11.75 GB). That is too big for one GitHub repository, so the guides are split across six repositories by category. This repository holds the catalog; the guides are in these:
+The archive holds 976 files (975 PDFs and one EPUB, 11.75 GB). That is too big for one GitHub repository, so the guides are split across six repositories by category:
 
 | Repository | What it holds | Guides | Size |
 |---|---|---|---|
@@ -16,10 +16,6 @@ The archive holds 976 files (975 PDFs and one EPUB, 11.75 GB). That is too big f
 | [style-guide-archives-government-s-y](https://github.com/WPTK/style-guide-archives-government-s-y) | The same, organisations S to Y | 143 | 2.22 GB |
 
 Inside each repository, files are named `<category>/<organization>/<year>-<title>.pdf`, and an `INDEX.md` lists every file with its year, size and the page it came from. The government repositories are split on the first letter of the organisation's folder name.
-
-## The catalog
-
-[`CATALOG.md`](CATALOG.md) lists where each guide lives online, including the many that are not archived yet. Sections 7 and 8 list the guides still wanted and the gaps in coverage.
 
 ## Large files
 
