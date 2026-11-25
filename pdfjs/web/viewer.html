@@ -29,7 +29,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 
   <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' blob: data:; media-src blob:; font-src 'self' data:; connect-src 'self' https://files.adsb.cc https://raw.githubusercontent.com https://media.githubusercontent.com blob: data:; base-uri 'none'; form-action 'none';"
+      content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' blob: data:; media-src blob:; font-src 'self' data:; connect-src 'self' https://files.adsb.cc blob: data:; base-uri 'none'; form-action 'none';"
     />
 
 <!-- This snippet is used in production (included from viewer.html) -->
@@ -42,7 +42,7 @@ See https://github.com/adobe-type-tools/cmap-resources
   </head>
 
   <body tabindex="0">
-    <p id="sgaError" role="alert" hidden><span></span> <a id="sgaGithubCopy" href="#" hidden>Try the GitHub copy</a> <a href="../../">Back to the list</a></p>
+    <p id="sgaError" role="alert" hidden><span></span> <a href="../../">Back to the list</a></p>
     <div id="outerContainer">
       <span id="viewer-alert" class="visuallyHidden" role="alert"></span>
 

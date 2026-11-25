@@ -19774,22 +19774,8 @@ const PDFViewerApplication = {
     // Style Guide Archives: say so on the page, with the way back to the list.
     const box = document.getElementById("sgaError");
     if (box) {
-      box.querySelector("span").textContent = message;
+      box.querySelector("span").textContent = "This file could not be loaded.";
       box.hidden = false;
-      // Files are served from files.adsb.cc; the GitHub repositories stay the record. Offer that copy when the
-      // R2 file fails. Guides of 100 MB or more are in Git LFS, which raw.githubusercontent.com does not serve.
-      const link = document.getElementById("sgaGithubCopy");
-      const m = /^https:\/\/files\.adsb\.cc\/(style-guide-archives-[a-z-]+)\/(.+\.pdf)$/i.exec(new URLSearchParams(window.location.search).get("file") ?? "");
-      if (link && m) {
-        const fileUrl = m[0];
-        const set = lfs => {
-          link.href = `https://${lfs ? "media" : "raw"}.githubusercontent.com/${lfs ? "media/" : ""}WPTK/${m[1]}/main/${m[2]}`;
-          link.hidden = false;
-        };
-        fetch("../../guides.json").then(r => r.json()).then(list => {
-          set((list.find(x => x.u === fileUrl)?.b ?? 0) >= 100000000);
-        }).catch(() => set(false));
-      }
     }
     this.eventBus.dispatch("documenterror", {
       source: this,
@@ -20605,10 +20591,9 @@ PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
     }
     const fileURL = URL.parse(file, window.location);
     const fileOrigin = fileURL?.origin;
-    // Style Guide Archives: the guides live in the WPTK category repositories.
-    // Only .pdf files open.
+    // Style Guide Archives: guides are served from files.adsb.cc (Cloudflare R2). Only .pdf files open.
     const isPdf = /\.pdf$/i.test(fileURL?.pathname ?? "");
-    if (isPdf && /^https:\/\/(raw\.githubusercontent\.com|media\.githubusercontent\.com\/media)\/WPTK\/style-guide-archives-[a-z-]+\/|^https:\/\/files\.adsb\.cc\/style-guide-archives-[a-z-]+\//.test(fileURL?.href ?? "")) {
+    if (isPdf && /^https:\/\/files\.adsb\.cc\/style-guide-archives-[a-z-]+\//.test(fileURL?.href ?? "")) {
       return;
     }
     if (isPdf && fileOrigin === viewerOrigin) {
