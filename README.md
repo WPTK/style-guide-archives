@@ -29,9 +29,11 @@ Later batches go into further repositories, filled one at a time to about 1.8 GB
 | [style-guide-archives-brand-identity-alpha](https://github.com/WPTK/style-guide-archives-brand-identity-alpha) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 217 | 1.79 GB |
 | [style-guide-archives-brand-identity-bravo](https://github.com/WPTK/style-guide-archives-brand-identity-bravo) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 202 | 1.79 GB |
 | [style-guide-archives-brand-identity-charlie](https://github.com/WPTK/style-guide-archives-brand-identity-charlie) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 202 | 1.80 GB |
-| [style-guide-archives-brand-identity-delta](https://github.com/WPTK/style-guide-archives-brand-identity-delta) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 112 | 0.83 GB |
+| [style-guide-archives-brand-identity-delta](https://github.com/WPTK/style-guide-archives-brand-identity-delta) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 213 | 1.77 GB |
+| [style-guide-archives-brand-identity-echo](https://github.com/WPTK/style-guide-archives-brand-identity-echo) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 5 | 0.14 GB |
 | [style-guide-archives-editorial-alpha](https://github.com/WPTK/style-guide-archives-editorial-alpha) | Editorial and publishing style manuals, house style guides and typography references | 204 | 1.78 GB |
-| [style-guide-archives-editorial-bravo](https://github.com/WPTK/style-guide-archives-editorial-bravo) | Editorial and publishing style manuals, house style guides and typography references | 136 | 0.67 GB |
+| [style-guide-archives-editorial-bravo](https://github.com/WPTK/style-guide-archives-editorial-bravo) | Editorial and publishing style manuals, house style guides and typography references | 181 | 1.80 GB |
+| [style-guide-archives-editorial-charlie](https://github.com/WPTK/style-guide-archives-editorial-charlie) | Editorial and publishing style manuals, house style guides and typography references | 110 | 1.36 GB |
 | [style-guide-archives-government-alpha](https://github.com/WPTK/style-guide-archives-government-alpha) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 294 | 1.79 GB |
 | [style-guide-archives-government-bravo](https://github.com/WPTK/style-guide-archives-government-bravo) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 215 | 1.80 GB |
 | [style-guide-archives-government-charlie](https://github.com/WPTK/style-guide-archives-government-charlie) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 189 | 1.79 GB |
@@ -47,8 +49,12 @@ Later batches go into further repositories, filled one at a time to about 1.8 GB
 | [style-guide-archives-government-mike](https://github.com/WPTK/style-guide-archives-government-mike) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 177 | 1.80 GB |
 | [style-guide-archives-government-november](https://github.com/WPTK/style-guide-archives-government-november) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 175 | 1.80 GB |
 | [style-guide-archives-government-oscar](https://github.com/WPTK/style-guide-archives-government-oscar) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 211 | 1.78 GB |
-| [style-guide-archives-government-papa](https://github.com/WPTK/style-guide-archives-government-papa) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 23 | 0.39 GB |
-| [style-guide-archives-tech-and-software-alpha](https://github.com/WPTK/style-guide-archives-tech-and-software-alpha) | Technical writing style guides and software UI and interface guidelines | 72 | 0.76 GB |
+| [style-guide-archives-government-papa](https://github.com/WPTK/style-guide-archives-government-papa) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 184 | 1.78 GB |
+| [style-guide-archives-government-quebec](https://github.com/WPTK/style-guide-archives-government-quebec) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 237 | 1.80 GB |
+| [style-guide-archives-government-romeo](https://github.com/WPTK/style-guide-archives-government-romeo) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 154 | 1.80 GB |
+| [style-guide-archives-government-sierra](https://github.com/WPTK/style-guide-archives-government-sierra) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 110 | 1.77 GB |
+| [style-guide-archives-government-tango](https://github.com/WPTK/style-guide-archives-government-tango) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 34 | 0.32 GB |
+| [style-guide-archives-tech-and-software-alpha](https://github.com/WPTK/style-guide-archives-tech-and-software-alpha) | Technical writing style guides and software UI and interface guidelines | 179 | 0.90 GB |
 <!-- more-repos:end -->
 
 ## Large files
