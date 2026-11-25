@@ -33,7 +33,8 @@
       r.hidden = !ok;
       if (ok) shown++;
     });
-    count.textContent = shown === total ? total + " guides" : shown + " of " + total + " guides";
+    var all = total.toLocaleString("en-US");
+    count.textContent = shown === total ? all + " guides" : shown.toLocaleString("en-US") + " of " + all + " guides";
     none.hidden = shown !== 0;
     table.hidden = shown === 0;
     buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.c === state.c)); });

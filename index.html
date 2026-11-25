@@ -5,7 +5,10 @@ title: Style Guide Archives
 {%- assign total = data.guides | size -%}
 {%- assign viewer = '/pdfjs/web/viewer.html' | relative_url -%}
 <main class="page">
-  <h1>Style Guide Archives</h1>
+  <header class="top">
+    <h1>Style Guide Archives</h1>
+    <p class="count" id="count" role="status">{{ total }} guides</p>
+  </header>
 
   <div class="tools" role="search">
     <label class="field"><span>Search</span><input id="q" type="search" autocomplete="off" spellcheck="false"></label>
@@ -17,7 +20,6 @@ title: Style Guide Archives
         <option value="w">Newest first</option>
       </select>
     </label>
-    <p class="count" id="count" role="status">{{ total }} guides</p>
   </div>
 
   <div class="cats" role="group" aria-label="Category">
