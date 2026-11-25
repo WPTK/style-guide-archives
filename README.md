@@ -45,6 +45,9 @@ Later batches go into further repositories, filled one at a time to about 1.8 GB
 | [style-guide-archives-government-kilo](https://github.com/WPTK/style-guide-archives-government-kilo) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 185 | 1.78 GB |
 | [style-guide-archives-government-lima](https://github.com/WPTK/style-guide-archives-government-lima) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 173 | 1.79 GB |
 | [style-guide-archives-government-mike](https://github.com/WPTK/style-guide-archives-government-mike) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 177 | 1.80 GB |
+| [style-guide-archives-government-november](https://github.com/WPTK/style-guide-archives-government-november) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 175 | 1.80 GB |
+| [style-guide-archives-government-oscar](https://github.com/WPTK/style-guide-archives-government-oscar) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 211 | 1.78 GB |
+| [style-guide-archives-government-papa](https://github.com/WPTK/style-guide-archives-government-papa) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 23 | 0.39 GB |
 | [style-guide-archives-tech-and-software-alpha](https://github.com/WPTK/style-guide-archives-tech-and-software-alpha) | Technical writing style guides and software UI and interface guidelines | 72 | 0.76 GB |
 <!-- more-repos:end -->
 
