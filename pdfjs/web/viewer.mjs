@@ -654,7 +654,7 @@ const defaultOptions = new Map([["allowedGlobalEvents", {
   value: true,
   kind: OptionKind.VIEWER + OptionKind.PREFERENCE
 }], ["enableScripting", {
-  value: true,
+  value: false,
   kind: OptionKind.VIEWER + OptionKind.PREFERENCE
 }], ["enableSelectionRendering", {
   value: true,
@@ -675,7 +675,7 @@ const defaultOptions = new Map([["allowedGlobalEvents", {
   value: "noopener noreferrer nofollow",
   kind: OptionKind.VIEWER
 }], ["externalLinkTarget", {
-  value: 0,
+  value: 2,
   kind: OptionKind.VIEWER + OptionKind.PREFERENCE
 }], ...[], ["highlightEditorColors", {
   value: "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F," + "yellow_HCM=#FFFFCC,green_HCM=#53FFBC,blue_HCM=#80EBFF,pink_HCM=#F6B8FF,red_HCM=#C50043",
@@ -19771,6 +19771,12 @@ const PDFViewerApplication = {
   async _documentError(key, moreInfo = null) {
     this._unblockDocumentLoadEvent();
     const message = await this._otherError(key || "pdfjs-loading-error", moreInfo);
+    // Style Guide Archives: say so on the page, with the way back to the list.
+    const box = document.getElementById("sgaError");
+    if (box) {
+      box.querySelector("span").textContent = message;
+      box.hidden = false;
+    }
     this.eventBus.dispatch("documenterror", {
       source: this,
       message,
@@ -20586,10 +20592,12 @@ PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
     const fileURL = URL.parse(file, window.location);
     const fileOrigin = fileURL?.origin;
     // Style Guide Archives: the guides live in the WPTK category repositories.
-    if (/^https:\/\/(raw\.githubusercontent\.com|media\.githubusercontent\.com\/media)\/WPTK\/style-guide-archives-[a-z-]+\//.test(fileURL?.href ?? "")) {
+    // Only .pdf files open.
+    const isPdf = /\.pdf$/i.test(fileURL?.pathname ?? "");
+    if (isPdf && /^https:\/\/(raw\.githubusercontent\.com|media\.githubusercontent\.com\/media)\/WPTK\/style-guide-archives-[a-z-]+\//.test(fileURL?.href ?? "")) {
       return;
     }
-    if (fileOrigin === viewerOrigin) {
+    if (isPdf && fileOrigin === viewerOrigin) {
       return;
     }
     const ex = new Error("file origin does not match viewer's");

@@ -10,7 +10,7 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:56px}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.5 var(--text);font-synthesis:none;font-variant-numeric:lining-nums}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -24,7 +24,7 @@ h1{margin:0;font:700 clamp(1.875rem,4.5vw,2.75rem)/1.05 var(--head);letter-spaci
 .tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px}
 .field{display:flex;flex-direction:column;gap:4px}
 .field span{font:600 .875rem var(--head);color:var(--soft)}
-input,select{height:42px;padding:0 10px;border:1px solid var(--ink);border-radius:0;background:var(--field);color:var(--ink);font:1rem var(--text)}
+input,select,#dir{height:42px;padding:0 10px;border:1px solid var(--ink);border-radius:0;background:var(--field);color:var(--ink);font:1rem var(--text)}
 input{width:min(26rem,calc(100vw - 2 * var(--gutter)))}
 .count{margin:0;font:600 1.25rem var(--head);font-variant-numeric:lining-nums}
 
@@ -32,10 +32,11 @@ input{width:min(26rem,calc(100vw - 2 * var(--gutter)))}
 .browse:empty{display:none}
 .browse{display:grid;grid-template-columns:auto 1fr;column-gap:24px;border-bottom:1px solid var(--rule)}
 .browse .line{grid-column:2;display:flex;flex-wrap:wrap;gap:0 24px}
-.browse .lbl{grid-row:1}
-.browse .lbl{align-self:center;font:600 .875rem var(--head);color:var(--soft)}
-.browse button{min-height:44px;padding:0;border:0;border-bottom:4px solid transparent;background:none;color:var(--ink);font:500 1.0625rem var(--head);cursor:pointer}
-.browse button:hover{border-bottom-color:var(--rule)}
+.browse .lbl{grid-row:1;align-self:center;font:600 .875rem var(--head);color:var(--soft)}
+.browse button,.panel button,.chip{min-height:44px;padding:0;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink);cursor:pointer}
+.browse button:hover,.panel button:hover,.chip:hover{border-bottom-color:var(--rule)}
+.browse button{border-bottom-width:4px;font:500 1.0625rem var(--head)}
+.browse button[data-n]::after{content:" (" attr(data-n) ")"}
 .browse button[aria-expanded="true"]{border-bottom-color:var(--accent);font-weight:700}
 
 .panel{padding:6px 0 14px;border-bottom:1px solid var(--rule)}
@@ -44,37 +45,37 @@ input{width:min(26rem,calc(100vw - 2 * var(--gutter)))}
 .panel .find{margin:8px 0 6px}
 .panel .years input{width:8rem}
 .panel .find input{width:min(18rem,100%)}
-.panel ul,.panel h2+ul{display:flex;flex-wrap:wrap;gap:0 22px;margin:0;padding:0;list-style:none}
-.panel button{min-height:44px;padding:0;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink);font:500 1rem var(--text);cursor:pointer;text-align:left}
-.panel button:hover{border-bottom-color:var(--rule)}
+.panel ul{display:flex;flex-wrap:wrap;gap:0 22px;margin:0;padding:0;list-style:none}
+.panel button,.chip{font:500 1rem var(--text)}
+.panel button{text-align:left}
 .panel button[aria-pressed="true"]{border-bottom-color:var(--accent);font-weight:700}
 .panel .n{margin-left:.25em;color:var(--soft);font-size:.9375rem;font-variant-numeric:lining-nums tabular-nums}
-.panel .dim{color:#8d897f}
+.panel .dim{color:#6f6b62;font-weight:400}
 .panel .dim .n{color:inherit}
 
 .active{display:flex;flex-wrap:wrap;gap:0 22px;margin-top:6px}
-.chip{min-height:44px;padding:0;border:0;border-bottom:3px solid transparent;background:none;color:var(--ink);font:500 1rem var(--text);cursor:pointer}
 .chip span[aria-hidden]{color:var(--accent);font-weight:700}
-.chip:hover{border-bottom-color:var(--rule)}
 .chip.all{color:var(--soft);text-decoration:underline;text-decoration-color:var(--rule);text-decoration-thickness:2px;text-underline-offset:3px}
 
 table{width:100%;border-collapse:collapse;table-layout:fixed}
 th:nth-child(1){width:46%}th:nth-child(2){width:28%}th:nth-child(3){width:14%}
 th{position:sticky;top:0;padding:8px 16px 8px 0;border-bottom:2px solid var(--ink);background:var(--paper);color:var(--soft);font:600 .875rem var(--head);text-align:left}
 td{padding:10px 16px 10px 0;border-bottom:1px solid var(--rule);vertical-align:baseline}
-td.t{width:48%}
-td.t a{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--rule);text-decoration-thickness:2px;text-underline-offset:3px}
+td.t a{color:var(--ink);font-weight:500;text-decoration:underline;text-decoration-color:var(--soft);text-decoration-thickness:2px;text-underline-offset:3px}
 td.t a:hover{color:var(--accent);text-decoration-color:currentColor}
-td.o{width:28%;color:var(--soft)}
+td.o{color:var(--soft)}
 td.y,td.s{white-space:nowrap;color:var(--soft);font-variant-numeric:lining-nums tabular-nums}
 td.s{text-align:right;padding-right:0}
 th:last-child{text-align:right;padding-right:0}
-th button{min-height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:inherit;cursor:pointer}
-th button:hover,th[aria-sort="ascending"] button,th[aria-sort="descending"] button{color:var(--ink)}
-th button:hover{text-decoration:underline;text-decoration-color:var(--rule);text-decoration-thickness:2px;text-underline-offset:3px}
+th button{min-height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:inherit;cursor:pointer;text-decoration:underline dotted var(--soft);text-decoration-thickness:1px;text-underline-offset:3px}
+th button:hover,th[aria-sort] button{color:var(--ink)}
+th button:hover{text-decoration-style:solid}
 .ar{font-family:Arial,Helvetica,sans-serif}
-#dir{height:42px;padding:0 14px;border:1px solid var(--ink);border-radius:0;background:var(--field);color:var(--ink);font:1rem var(--text);cursor:pointer}
+#dir{padding:0 14px;cursor:pointer}
 
+#pager-top{scroll-margin-top:-56px} /* the pager scrolls to the very top; scroll-padding is for focus behind the sticky header */
+/* With the script on, hold the room the Browse buttons and the pager take once drawn, so the table does not jump. */
+@media (scripting:enabled){.browse:empty{display:block;min-height:89px}#pager-top{min-height:50px}}
 .pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 24px;margin:0 0 6px}
 #pager-bottom .pager{margin:10px 0 0}
 .pager p{margin:0;color:var(--soft)}
@@ -85,6 +86,12 @@ th button:hover{text-decoration:underline;text-decoration-color:var(--rule);text
 .pager [aria-current]{border-bottom-color:var(--accent);font-weight:700}
 .pager .dis,.pager .gap>*{color:#8d897f}
 .plain{margin:14px 0 0;color:var(--soft)}
+
+@media (forced-colors:active){
+  .browse button,.panel button,.chip,.pager li>*{border-bottom-color:Canvas}
+  .browse button:hover,.panel button:hover,.chip:hover,.pager a:hover{border-bottom-color:ButtonText}
+  .browse button[aria-expanded="true"],.panel button[aria-pressed="true"],.pager [aria-current]{border-bottom-color:Highlight}
+}
 
 .none{padding:32px 0}
 .none p{margin:0 0 14px}
@@ -108,3 +115,8 @@ th button:hover{text-decoration:underline;text-decoration-color:var(--rule);text
   .panel ul{gap:0 18px}
   .pager li>*{padding:0 6px}
 }
+@media (scripting:enabled) and (max-width:720px){.browse:empty{min-height:133px}#pager-top{min-height:78px}}
+@media (max-width:340px){
+  .pager li>*{min-width:32px;padding:0 4px}
+}
+@media (scripting:none){.js-only{display:none}} /* Sort needs the script */

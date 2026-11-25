@@ -1,5 +1,6 @@
 ---
 title: Style Guide Archives
+preload_data: true
 ---
 {%- assign data = site.data.guides -%}
 {%- assign total = data.guides | size -%}
@@ -13,7 +14,7 @@ title: Style Guide Archives
 
   <div class="tools" role="search">
     <label class="field"><span>Search</span><input id="q" type="search" autocomplete="off" spellcheck="false"></label>
-    <label class="field"><span>Sort</span>
+    <label class="field js-only"><span>Sort</span>
       <select id="s">
         <option value="n">Organization</option>
         <option value="t">Title</option>
@@ -32,19 +33,18 @@ title: Style Guide Archives
 
   <h2 class="sr" id="guides-h" tabindex="-1">Guides</h2>
   <div id="pager-top"></div>
-  <table id="list" data-per="{{ per }}" data-src="{{ '/guides.json' | relative_url }}" data-viewer="{{ viewer }}">
-    <caption class="sr">Guides</caption>
-    <thead>
-      <tr><th scope="col">Title</th><th scope="col">Organization</th><th scope="col">Year</th><th scope="col">Size</th></tr>
+  <table id="list" role="table" aria-labelledby="guides-h" data-per="{{ per }}" data-src="{{ '/guides.json' | relative_url }}" data-viewer="{{ viewer }}">
+    <thead role="rowgroup">
+      <tr role="row"><th scope="col" role="columnheader">Title</th><th scope="col" role="columnheader">Organization</th><th scope="col" role="columnheader">Year</th><th scope="col" role="columnheader">Size</th></tr>
     </thead>
-    <tbody>
+    <tbody role="rowgroup">
     {%- for g in data.guides limit: per %}
       {%- assign ext = g.u | split: "." | last | downcase %}
-      <tr data-n="{{ forloop.index0 }}" data-ys="{{ g.ys }}">
-        <td class="t"><a target="_blank" rel="noopener" href="{% if ext == 'pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
-        <td class="o">{{ g.o | escape }}</td>
-        <td class="y">{{ g.y }}</td>
-        <td class="s">{{ g.s }}</td>
+      <tr role="row" data-n="{{ forloop.index0 }}" data-ys="{{ g.ys }}">
+        <td class="t" role="cell"><a target="_blank" rel="noopener" dir="auto"{% if ext == 'pdf' %} href="{{ viewer }}?file={{ g.u | url_encode }}"{% elsif g.u contains 'https://' %} href="{{ g.u | escape }}"{% endif %}>{{ g.t | escape }}</a></td>
+        <td class="o" role="cell" dir="auto">{{ g.o | escape }}</td>
+        <td class="y" role="cell">{{ g.y }}</td>
+        <td class="s" role="cell">{{ g.s }}</td>
       </tr>
     {%- endfor %}
     </tbody>
@@ -55,7 +55,7 @@ title: Style Guide Archives
   {%- endif %}
 
   <div class="none" id="none" hidden>
-    <p>No guides match.</p>
+    <p>No guides match these filters.</p>
     <button type="button" id="clear">Clear search</button>
   </div>
 </main>
