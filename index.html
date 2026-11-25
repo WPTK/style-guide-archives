@@ -5,7 +5,10 @@ title: Style Guide Archives
 {%- assign total = data.guides | size -%}
 {%- assign viewer = '/pdfjs/web/viewer.html' | relative_url -%}
 <main class="page">
-  <h1>Style Guide Archives</h1>
+  <header class="top">
+    <h1>Style Guide Archives</h1>
+    <p class="count" id="count" role="status">{{ total }} guides</p>
+  </header>
 
   <div class="tools" role="search">
     <label class="field"><span>Search</span><input id="q" type="search" autocomplete="off" spellcheck="false"></label>
@@ -17,15 +20,14 @@ title: Style Guide Archives
         <option value="w">Newest first</option>
       </select>
     </label>
-    <p class="count" id="count" role="status">{{ total }} guides</p>
   </div>
 
-  <div class="cats" role="group" aria-label="Category">
-    <button type="button" data-c="" aria-pressed="true">All</button>
-    {%- for c in data.categories %}
-    <button type="button" data-c="{{ c.slug }}" aria-pressed="false">{{ c.label }}</button>
-    {%- endfor %}
+  <div class="slice">
+    <div class="browse" id="browse" role="group" aria-label="Browse by"></div>
+    <div class="panel" id="panel" role="group" hidden></div>
+    <div class="active" id="active" role="group" aria-label="Active filters" hidden></div>
   </div>
+  <script type="application/json" id="facet-meta">{"categories":{{ data.categories | jsonify }},"regions":{{ data.regions | jsonify }},"industries":{{ data.industries | jsonify }},"documents":{{ data.documents | jsonify }}}</script>
 
   <table id="list">
     <caption class="sr">Guides</caption>
@@ -34,9 +36,10 @@ title: Style Guide Archives
     </thead>
     <tbody>
     {%- for g in data.guides %}
-      <tr data-n="{{ forloop.index0 }}" data-c="{{ g.c }}" data-ys="{{ g.ys }}">
-        {%- assign ext = g.u | slice: -4, 4 %}
-        <td class="t"><a href="{% if ext == '.pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
+      {%- assign ext = g.u | split: "." | last | downcase %}
+      <tr data-n="{{ forloop.index0 }}" data-c="{{ g.c }}" data-ys="{{ g.ys }}" data-b="{{ g.b }}" data-f="{{ ext }}"
+        {%- if g.d %} data-d="{{ g.d | escape }}"{% endif %}{% if g.i %} data-i="{{ g.i | escape }}"{% endif %}{% if g.x %} data-x="{{ g.x }}"{% endif %}{% if g.p %} data-p="{{ g.p }}"{% endif %}{% if g.g %} data-g="{{ g.g | escape }}"{% endif %}{% if g.k %} data-k="{{ g.k | join: "|" | escape }}"{% endif %}{% if g.l %} data-l="{{ g.l | join: "|" | escape }}"{% endif %}>
+        <td class="t"><a href="{% if ext == 'pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
         <td class="o">{{ g.o | escape }}</td>
         <td class="y">{{ g.y }}</td>
         <td class="s">{{ g.s }}</td>
