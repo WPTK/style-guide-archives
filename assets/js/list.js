@@ -13,6 +13,7 @@
   var pagerTop = document.getElementById("pager-top");
   var pagerBottom = document.getElementById("pager-bottom");
   var heading = document.getElementById("guides-h");
+  var noneText = document.querySelector("#none p");
   if (!body || !q) return;
 
   // The page ships the first PER rows so it stays small and works without JavaScript. The whole list comes from
@@ -21,8 +22,8 @@
   var VIEWER = table.getAttribute("data-viewer") || "";
   fetch(table.getAttribute("data-src"))
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(start)
-    .catch(function () {
+    .then(start, function () {
+      q.disabled = true; // nothing to search without the list; Sort stays hidden, Clear is not shown
       var p = document.createElement("p");
       p.className = "plain";
       p.textContent = "The rest of the list did not load. Reload the page to try again.";
@@ -46,7 +47,7 @@
     { k: "c", name: "Kind" }, { k: "d", name: "Document type" }, { k: "i", name: "Industry" },
     { k: "l", name: "Language" }, { k: "f", name: "Format" },
     { k: "g", name: "Region" }, { k: "k", name: "Country" }, { k: "e", name: "Era" },
-    { k: "x", name: "Organisation" }, { k: "b", name: "Size" }, { k: "p", name: "Length" }
+    { k: "x", name: "Status" }, { k: "b", name: "Size" }, { k: "p", name: "Length" }
   ];
 
   function era(ys) {
@@ -71,7 +72,7 @@
   var FOLD = { "ø": "o", "ł": "l", "đ": "d", "ð": "d", "ı": "i", "æ": "ae", "œ": "oe", "ß": "ss", "þ": "th", "ς": "σ" };
   var SCRIPTS = [/\p{Script=Greek}/u, /\p{Script=Cyrillic}/u, /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Bopomofo}]/u];
   function key(s) {
-    var t = String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    var t = norm(String(s || ""))
       .replace(/[øłđðıæœßþς]/g, function (c) { return FOLD[c]; })
       .replace(/['’]/g, "").replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").trim();
     var r = 0, m = t ? t.match(/\p{L}/u) : null; // the script of the first letter; digits alone count as Latin
@@ -98,11 +99,44 @@
       g: [one("g")], k: many("k"), e: [era(ys)], x: [one("x")],
       b: [size(+g.b)], p: [length(+g.p)]
     };
-    return { g: g, v: v, n: n, ys: ys, ext: ext, text: norm([g.t, g.o, g.y, g.s].join(" ")), kt: key(g.t), ko: key(g.o), bytes: +g.b > 0 ? +g.b : 0, fail: 0 };
+    return { g: g, v: v, n: n, ys: ys, ext: ext, bytes: +g.b > 0 ? +g.b : 0, fail: 0 };
   });
   var ord = recs; // recs in the current sort order
   var matched = []; // the guides that pass every filter, in that order
   var coll = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+
+  // Search text, sort keys and sort ranks are built when first needed, and otherwise in small slices while the page is
+  // idle, so start() only builds what the first screen shows. Each rec gets text (search), kt/ko (sort keys), and rt/ro:
+  // the rank of its title and organization in the collated order (equal keys share a rank), so a sort compares integers.
+  var tc = function (a, b) { return a.r - b.r || coll.compare(a.s, b.s); };
+  var nText = 0, nKey = 0, ranked = { t: false, o: false };
+  function textTo(end) {
+    for (; nText < end; nText++) { var x = recs[nText], g = x.g; x.text = norm([g.t, g.o, g.y, g.s].join(" ")); }
+  }
+  function keysTo(end) {
+    for (; nKey < end; nKey++) { var x = recs[nKey]; x.kt = key(x.g.t); x.ko = key(x.g.o); }
+  }
+  function rank(f) { // f: "t" or "o"
+    if (ranked[f]) return;
+    keysTo(total);
+    var k = "k" + f, r = "r" + f, ix = recs.slice().sort(function (a, b) { return tc(a[k], b[k]); });
+    for (var i = 0, at = 0; i < ix.length; i++) {
+      if (i > 0 && tc(ix[i - 1][k], ix[i][k]) !== 0) at = i;
+      ix[i][r] = at;
+    }
+    ranked[f] = true;
+  }
+  function idle(fn) { (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(fn); }
+  function warm() {
+    idle(function () {
+      if (nKey < total) keysTo(Math.min(total, nKey + 1000));
+      else if (!ranked.t) rank("t");
+      else if (!ranked.o) rank("o");
+      else if (nText < total) textTo(Math.min(total, nText + 1500));
+      else return;
+      warm();
+    });
+  }
 
   function label(k, v) { return k === "c" && kindLabel[v] ? kindLabel[v] : v; }
 
@@ -117,9 +151,9 @@
     m.forEach(function (n, v) { if (v !== NR && out.indexOf(v) < 0) out.push(v); });
     return out;
   }
-  function byCount(m) {
+  function byCount(m, k) {
     return Array.from(m.keys()).filter(function (v) { return v !== NR; }).sort(function (a, b) {
-      return m.get(b) - m.get(a) || label("c", a).localeCompare(label("c", b));
+      return m.get(b) - m.get(a) || label(k, a).localeCompare(label(k, b));
     });
   }
 
@@ -128,7 +162,7 @@
     var m = tally(d.k), vals;
     var real = m.size - (m.has(NR) ? 1 : 0);
     if (real < 2) return;
-    if (d.k === "c" || d.k === "l" || d.k === "f") vals = byCount(m);
+    if (d.k === "c" || d.k === "l" || d.k === "f") vals = byCount(m, d.k);
     else if (d.k === "g") vals = inOrder(m, meta.regions);
     else if (d.k === "d") vals = inOrder(m, meta.documents);
     else if (d.k === "i") vals = inOrder(m, meta.industries);
@@ -168,6 +202,7 @@
   // ---- filtering -------------------------------------------------------------------------
   function run() {
     var words = norm(state.q).split(/\s+/).filter(Boolean);
+    if (words.length) textTo(total);
     matched = [];
     for (var i = 0; i < ord.length; i++) {
       var x = ord[i], fail = 0;
@@ -220,11 +255,15 @@
 
   function paintActive() {
     var items = [];
+    var years = state.yf !== null || state.yt !== null;
     facets.forEach(function (f) {
       f.vals.forEach(function (v) { if (f.sel.has(v)) items.push([f.k, v, label(f.k, v)]); });
-      if (f.k === "e" && (state.yf !== null || state.yt !== null)) items.push(["y", "", yearText()]);
+      if (f.k === "e" && years) items.push(["y", "", yearText()]);
+      // the Browse button shows how many values are chosen in it, e.g. "Region (1)"
+      var n = f.sel.size + (f.k === "e" && years ? 1 : 0);
+      if (n) f.btn.dataset.n = n; else delete f.btn.dataset.n;
     });
-    if (!byKey.e && (state.yf !== null || state.yt !== null)) items.push(["y", "", yearText()]);
+    if (!byKey.e && years) items.push(["y", "", yearText()]);
     activeBox.textContent = "";
     activeBox.hidden = items.length === 0;
     if (!items.length) return;
@@ -268,14 +307,17 @@
     var g = x.g, tr = document.createElement("tr");
     tr.dataset.n = x.n;
     tr.dataset.ys = x.ys;
-    var cell = function (cls, text) { var td = document.createElement("td"); td.className = cls; td.textContent = text; tr.appendChild(td); return td; };
+    tr.setAttribute("role", "row"); // kept when the table is flattened to blocks on a phone
+    var cell = function (cls, text) { var td = document.createElement("td"); td.className = cls; td.setAttribute("role", "cell"); td.textContent = text; tr.appendChild(td); return td; };
     var a = document.createElement("a");
     a.target = "_blank";
     a.rel = "noopener";
-    a.href = x.ext === "pdf" ? VIEWER + "?file=" + encodeURIComponent(g.u) : g.u;
+    a.dir = "auto";
+    if (x.ext === "pdf") a.href = VIEWER + "?file=" + encodeURIComponent(g.u);
+    else if (/^https:\/\//.test(g.u)) a.href = g.u;
     a.textContent = g.t;
     cell("t", "").appendChild(a);
-    cell("o", g.o);
+    cell("o", g.o).dir = "auto";
     cell("y", g.y);
     cell("s", g.s);
     return tr;
@@ -288,12 +330,12 @@
     body.appendChild(frag);
   }
 
-  // Page numbers to show: first, last, the current page and two either side (one on a phone); a gap of one page is shown, not dotted.
-  var narrowQ = window.matchMedia("(max-width:720px)");
+  // Page numbers to show: first, last, the current page and two either side (one on a phone, none under 340 px, as at 400% zoom); a gap of one page is shown, not dotted.
+  var narrowQ = window.matchMedia("(max-width:720px)"), tinyQ = window.matchMedia("(max-width:340px)");
   function pageList(pages) {
     var out = [], last = 0;
     for (var p = 1; p <= pages; p++) {
-      if (p === 1 || p === pages || Math.abs(p - state.page) <= (narrowQ.matches ? 1 : 2)) {
+      if (p === 1 || p === pages || Math.abs(p - state.page) <= (tinyQ.matches ? 0 : narrowQ.matches ? 1 : 2)) {
         if (p - last === 2) out.push(last + 1);
         else if (p - last > 2) out.push(0);
         out.push(p);
@@ -305,7 +347,8 @@
   function item(ul, node) { var li = document.createElement("li"); li.appendChild(node); ul.appendChild(li); return li; }
   function pageLink(p, text, hidden) {
     var a = document.createElement("a");
-    a.href = location.pathname + (query(p) ? "?" + query(p) : "");
+    var qs = query(p);
+    a.href = location.pathname + (qs ? "?" + qs : "");
     a.dataset.p = p;
     if (hidden) a.appendChild(document.createTextNode(text));
     else {
@@ -373,6 +416,7 @@
     countText.nodeValue = shown === total ? all + " guides" : fmt(shown) + " of " + all + " guides";
     note.textContent = "";
     none.hidden = shown !== 0;
+    noneText.textContent = state.yf !== null && state.yt !== null && state.yf > state.yt ? "The From year is after the To year." : "No guides match these filters.";
     table.hidden = shown === 0;
     document.getElementById("clear").textContent = anyFilter() ? "Clear all" : "Clear search";
     paintRows();
@@ -395,7 +439,9 @@
     pagerTop.scrollIntoView();
     heading.focus({ preventScroll: true });
   }
-  narrowQ.addEventListener("change", function () { paintPager(pagerTop, "top", matched.length, lastPages); paintPager(pagerBottom, "bottom", matched.length, lastPages); });
+  function repage() { paintPager(pagerTop, "top", matched.length, lastPages); paintPager(pagerBottom, "bottom", matched.length, lastPages); }
+  narrowQ.addEventListener("change", repage);
+  tinyQ.addEventListener("change", repage);
   function onPager(e) {
     var a = e.target.closest("a[data-p]");
     if (!a || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
@@ -541,12 +587,11 @@
   panel.addEventListener("input", function (e) {
     if (e.target === findIn) { narrow(); return; }
     if (e.target === yfIn || e.target === ytIn) {
+      // The inputs go away when the panel closes, so read them now and only delay the filtering.
+      state.yf = yearOf(yfIn.value);
+      state.yt = yearOf(ytIn.value);
       clearTimeout(yTimer);
-      yTimer = setTimeout(function () {
-        state.yf = yearOf(yfIn.value);
-        state.yt = yearOf(ytIn.value);
-        update(); save(false);
-      }, 200);
+      yTimer = setTimeout(function () { update(); save(false); }, 200);
     }
   });
   function closeOnEsc(e) {
@@ -590,21 +635,25 @@
   var SORTS = { n: "Organization", t: "Title", y: "Year", b: "Size" };
   var SLUG = { n: "organization", t: "title", y: "year", b: "size" };
   var LEGACY = { n: ["n", 1], t: ["t", 1], o: ["y", 1], w: ["y", -1] }; // the old ?s= values
-  var tc = function (a, b) { return a.r - b.r || coll.compare(a.s, b.s); };
+  var orders = {}; // sort and direction -> the sorted recs, kept so going back to one costs nothing
   function order() {
-    var s = state.s, d = state.d;
-    ord = recs.slice().sort(function (a, b) {
+    var s = state.s, d = state.d, id = s + d;
+    // shortcut: guides.json is stored in Organization-ascending order (make_list_data.py), so that order is the recs as they are.
+    if (id === "n1") { ord = recs; return; }
+    if (orders[id]) { ord = orders[id]; return; }
+    rank("t"); rank("o");
+    ord = orders[id] = recs.slice().sort(function (a, b) {
       var c;
       if (s === "n" || s === "t") {
         var x = s === "n" ? a.ko : a.kt, y = s === "n" ? b.ko : b.kt;
         if ((x.r === 9) !== (y.r === 9)) return x.r === 9 ? 1 : -1; // nothing to sort on goes last either way
-        c = d * tc(x, y);
+        c = d * (s === "n" ? a.ro - b.ro : a.rt - b.rt);
       } else {
         var u = s === "y" ? a.ys : a.bytes, v = s === "y" ? b.ys : b.bytes;
         if (!u !== !v) return u ? -1 : 1; // undated or unrecorded goes last either way
         c = u && v ? d * (u - v) : 0;
       }
-      return c || tc(a.kt, b.kt) || tc(a.ko, b.ko) || a.n - b.n;
+      return c || a.rt - b.rt || a.ro - b.ro || a.n - b.n;
     });
   }
   var heads = {}, dirBtn = document.createElement("button");
@@ -634,10 +683,11 @@
     ar.className = "ar";
     ar.textContent = state.d > 0 ? "↑" : "↓";
     dirBtn.appendChild(ar);
-    dirBtn.setAttribute("aria-label", "Sort direction: " + (state.d > 0 ? "ascending" : "descending") + ". Switch.");
+    dirBtn.setAttribute("aria-label", "Sort direction: " + (state.d > 0 ? "ascending" : "descending") + ". Press to reverse.");
     Object.keys(heads).forEach(function (k) {
       var on = k === state.s;
-      heads[k].th.setAttribute("aria-sort", on ? (state.d > 0 ? "ascending" : "descending") : "none");
+      if (on) heads[k].th.setAttribute("aria-sort", state.d > 0 ? "ascending" : "descending");
+      else heads[k].th.removeAttribute("aria-sort");
       heads[k].mark.textContent = on ? (state.d > 0 ? " ↑" : " ↓") : "";
     });
   }
@@ -676,7 +726,7 @@
   }
   // Reads the address into state. Anything unknown or malformed is skipped; returns true when something was.
   function read() {
-    var bad = false, seen = {};
+    var bad = false, seen = Object.create(null);
     state.q = ""; state.s = "n"; state.d = 1; state.yf = state.yt = null; state.page = 1;
     facets.forEach(function (f) { f.sel.clear(); });
     location.search.replace(/^\?/, "").split("&").forEach(function (part) {
@@ -689,7 +739,7 @@
         var t = dec(raw);
         if (t === null) bad = true; else state.q = t;
       } else if (key === "s") {
-        if (LEGACY[raw]) { state.s = LEGACY[raw][0]; state.d = LEGACY[raw][1]; } else bad = true;
+        if (Object.prototype.hasOwnProperty.call(LEGACY, raw)) { state.s = LEGACY[raw][0]; state.d = LEGACY[raw][1]; } else bad = true;
       } else if (key === "sort") {
         var sk = Object.keys(SLUG).filter(function (k) { return SLUG[k] === raw; })[0];
         if (sk) { state.s = sk; } else bad = true;
@@ -717,6 +767,7 @@
   var dirty = read();
   order();
   if (update(true) || dirty) save(false);
+  warm();
 
   window.addEventListener("popstate", function () { read(); order(); update(true); });
 

@@ -8292,3 +8292,21 @@ dialog :link {
     display: none;
   }
 }
+
+/* Style Guide Archives: shown when the PDF cannot be opened. */
+#sgaError {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  margin: 0;
+  padding: 12px 16px;
+  background: #fbfaf6;
+  color: #1b1a18;
+  border-bottom: 2px solid #1b1a18;
+  font: 16px/1.5 Georgia, serif;
+}
+#sgaError a {
+  color: inherit;
+}
