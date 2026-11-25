@@ -31,11 +31,11 @@ Later batches go into further repositories, filled one at a time to about 1.8 GB
 | [style-guide-archives-brand-identity-charlie](https://github.com/WPTK/style-guide-archives-brand-identity-charlie) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 202 | 1.80 GB |
 | [style-guide-archives-brand-identity-delta](https://github.com/WPTK/style-guide-archives-brand-identity-delta) | Brand identity manuals and graphic standards from companies and organisations worldwide, existing and defunct | 112 | 0.83 GB |
 | [style-guide-archives-editorial-alpha](https://github.com/WPTK/style-guide-archives-editorial-alpha) | Editorial and publishing style manuals, house style guides and typography references | 204 | 1.78 GB |
-| [style-guide-archives-editorial-bravo](https://github.com/WPTK/style-guide-archives-editorial-bravo) | Editorial and publishing style manuals, house style guides and typography references | 132 | 0.67 GB |
+| [style-guide-archives-editorial-bravo](https://github.com/WPTK/style-guide-archives-editorial-bravo) | Editorial and publishing style manuals, house style guides and typography references | 136 | 0.67 GB |
 | [style-guide-archives-government-alpha](https://github.com/WPTK/style-guide-archives-government-alpha) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 294 | 1.79 GB |
 | [style-guide-archives-government-bravo](https://github.com/WPTK/style-guide-archives-government-bravo) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 215 | 1.80 GB |
 | [style-guide-archives-government-charlie](https://github.com/WPTK/style-guide-archives-government-charlie) | Government, transit, wayfinding, Olympic and institutional identity and graphics manuals | 189 | 1.79 GB |
-| [style-guide-archives-tech-and-software-alpha](https://github.com/WPTK/style-guide-archives-tech-and-software-alpha) | Technical writing style guides and software UI and interface guidelines | 49 | 0.20 GB |
+| [style-guide-archives-tech-and-software-alpha](https://github.com/WPTK/style-guide-archives-tech-and-software-alpha) | Technical writing style guides and software UI and interface guidelines | 72 | 0.76 GB |
 <!-- more-repos:end -->
 
 ## Large files
