@@ -4,6 +4,7 @@ title: Style Guide Archives
 {%- assign data = site.data.guides -%}
 {%- assign total = data.guides | size -%}
 {%- assign viewer = '/pdfjs/web/viewer.html' | relative_url -%}
+{%- assign per = 100 -%}
 <main class="page">
   <header class="top">
     <h1>Style Guide Archives</h1>
@@ -29,16 +30,17 @@ title: Style Guide Archives
   </div>
   <script type="application/json" id="facet-meta">{"categories":{{ data.categories | jsonify }},"regions":{{ data.regions | jsonify }},"industries":{{ data.industries | jsonify }},"documents":{{ data.documents | jsonify }}}</script>
 
-  <table id="list">
+  <h2 class="sr" id="guides-h" tabindex="-1">Guides</h2>
+  <div id="pager-top"></div>
+  <table id="list" data-per="{{ per }}" data-src="{{ '/guides.json' | relative_url }}" data-viewer="{{ viewer }}">
     <caption class="sr">Guides</caption>
     <thead>
       <tr><th scope="col">Title</th><th scope="col">Organization</th><th scope="col">Year</th><th scope="col">Size</th></tr>
     </thead>
     <tbody>
-    {%- for g in data.guides %}
+    {%- for g in data.guides limit: per %}
       {%- assign ext = g.u | split: "." | last | downcase %}
-      <tr data-n="{{ forloop.index0 }}" data-c="{{ g.c }}" data-ys="{{ g.ys }}" data-b="{{ g.b }}" data-f="{{ ext }}"
-        {%- if g.d %} data-d="{{ g.d | escape }}"{% endif %}{% if g.i %} data-i="{{ g.i | escape }}"{% endif %}{% if g.x %} data-x="{{ g.x }}"{% endif %}{% if g.p %} data-p="{{ g.p }}"{% endif %}{% if g.g %} data-g="{{ g.g | escape }}"{% endif %}{% if g.k %} data-k="{{ g.k | join: "|" | escape }}"{% endif %}{% if g.l %} data-l="{{ g.l | join: "|" | escape }}"{% endif %}>
+      <tr data-n="{{ forloop.index0 }}" data-ys="{{ g.ys }}">
         <td class="t"><a href="{% if ext == 'pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
         <td class="o">{{ g.o | escape }}</td>
         <td class="y">{{ g.y }}</td>
@@ -47,6 +49,10 @@ title: Style Guide Archives
     {%- endfor %}
     </tbody>
   </table>
+  <div id="pager-bottom"></div>
+  {%- if total > per %}
+  <noscript><p class="plain" id="nojs">Showing the first {{ per }} of {{ total }} guides. The rest need JavaScript.</p></noscript>
+  {%- endif %}
 
   <div class="none" id="none" hidden>
     <p>No guides match.</p>

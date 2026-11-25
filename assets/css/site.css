@@ -70,6 +70,17 @@ td.y,td.s{white-space:nowrap;color:var(--soft);font-variant-numeric:lining-nums 
 td.s{text-align:right;padding-right:0}
 th:last-child{text-align:right;padding-right:0}
 
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 24px;margin:0 0 6px}
+#pager-bottom .pager{margin:10px 0 0}
+.pager p{margin:0;color:var(--soft)}
+.pager ul{display:flex;flex-wrap:wrap;margin:0;padding:0;list-style:none}
+.pager li>*{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 8px;border-bottom:3px solid transparent;font:500 1rem var(--head);font-variant-numeric:lining-nums}
+.pager a{color:var(--ink);text-decoration:none}
+.pager a:hover{border-bottom-color:var(--rule)}
+.pager [aria-current]{border-bottom-color:var(--accent);font-weight:700}
+.pager .dis,.pager .gap>*{color:#8d897f}
+.plain{margin:14px 0 0;color:var(--soft)}
+
 .none{padding:32px 0}
 .none p{margin:0 0 14px}
 .none button{min-height:44px;padding:0 18px;border:1px solid var(--ink);border-radius:0;background:none;color:var(--ink);font:600 1rem var(--head);cursor:pointer}
@@ -90,4 +101,5 @@ th:last-child{text-align:right;padding-right:0}
   .browse{display:flex;flex-wrap:wrap;gap:0 18px}
   .browse .line{display:contents}
   .panel ul{gap:0 18px}
+  .pager li>*{padding:0 6px}
 }
