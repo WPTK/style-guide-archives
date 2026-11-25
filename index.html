@@ -3,6 +3,7 @@ title: Style Guide Archives
 ---
 {%- assign data = site.data.guides -%}
 {%- assign total = data.guides | size -%}
+{%- assign viewer = '/pdfjs/web/viewer.html' | relative_url -%}
 <main class="page">
   <h1>Style Guide Archives</h1>
 
@@ -34,7 +35,8 @@ title: Style Guide Archives
     <tbody>
     {%- for g in data.guides %}
       <tr data-n="{{ forloop.index0 }}" data-c="{{ g.c }}" data-ys="{{ g.ys }}">
-        <td class="t"><a href="{{ g.u }}">{{ g.t | escape }}</a></td>
+        {%- assign ext = g.u | slice: -4, 4 %}
+        <td class="t"><a href="{% if ext == '.pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
         <td class="o">{{ g.o | escape }}</td>
         <td class="y">{{ g.y }}</td>
         <td class="s">{{ g.s }}</td>
