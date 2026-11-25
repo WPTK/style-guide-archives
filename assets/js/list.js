@@ -65,6 +65,24 @@
     return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   }
 
+  // Sort key for Title and Organization: case, accents and punctuation ignored, numbers in natural order (the collator),
+  // Latin-script text first, then Greek, Cyrillic, CJK and the rest, each group alphabetical. No leading article is
+  // dropped. make_list_data.py has the same rule (sort_key) and stores guides.json in this order.
+  var FOLD = { "ø": "o", "ł": "l", "đ": "d", "ð": "d", "ı": "i", "æ": "ae", "œ": "oe", "ß": "ss", "þ": "th", "ς": "σ" };
+  var SCRIPTS = [/\p{Script=Greek}/u, /\p{Script=Cyrillic}/u, /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Bopomofo}]/u];
+  function key(s) {
+    var t = String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+      .replace(/[øłđðıæœßþς]/g, function (c) { return FOLD[c]; })
+      .replace(/['’]/g, "").replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").trim();
+    var r = 0, m = t ? t.match(/\p{L}/u) : null; // the script of the first letter; digits alone count as Latin
+    if (!t) r = 9;
+    else if (m && !/\p{Script=Latin}/u.test(m[0])) {
+      r = 4;
+      for (var i = 0; i < SCRIPTS.length; i++) if (SCRIPTS[i].test(m[0])) { r = i + 1; break; }
+    }
+    return { r: r, s: t };
+  }
+
   var total = guides.length;
   var recs = guides.map(function (g, n) {
     var one = function (a) { return g[a] || NR; };
@@ -80,11 +98,11 @@
       g: [one("g")], k: many("k"), e: [era(ys)], x: [one("x")],
       b: [size(+g.b)], p: [length(+g.p)]
     };
-    return { g: g, v: v, n: n, ys: ys, ext: ext, text: norm([g.t, g.o, g.y, g.s].join(" ")), title: norm(g.t), fail: 0 };
+    return { g: g, v: v, n: n, ys: ys, ext: ext, text: norm([g.t, g.o, g.y, g.s].join(" ")), kt: key(g.t), ko: key(g.o), bytes: +g.b > 0 ? +g.b : 0, fail: 0 };
   });
   var ord = recs; // recs in the current sort order
   var matched = []; // the guides that pass every filter, in that order
-  var coll = new Intl.Collator();
+  var coll = new Intl.Collator("en", { sensitivity: "base", numeric: true });
 
   function label(k, v) { return k === "c" && kindLabel[v] ? kindLabel[v] : v; }
 
@@ -142,7 +160,7 @@
   var yearMin = 0, yearMax = 0;
   recs.forEach(function (x) { if (x.ys) { yearMin = yearMin ? Math.min(yearMin, x.ys) : x.ys; yearMax = Math.max(yearMax, x.ys); } });
 
-  var state = { q: "", s: "n", yf: null, yt: null, page: 1 };
+  var state = { q: "", s: "n", d: 1, yf: null, yt: null, page: 1 }; // s: n, t, y or b; d: 1 ascending, -1 descending
   var open = null;
   var cells = {}; // value -> { btn, n, li } for the open panel
   var yfIn = null, ytIn = null, findIn = null;
@@ -252,6 +270,8 @@
     tr.dataset.ys = x.ys;
     var cell = function (cls, text) { var td = document.createElement("td"); td.className = cls; td.textContent = text; tr.appendChild(td); return td; };
     var a = document.createElement("a");
+    a.target = "_blank";
+    a.rel = "noopener";
     a.href = x.ext === "pdf" ? VIEWER + "?file=" + encodeURIComponent(g.u) : g.u;
     a.textContent = g.t;
     cell("t", "").appendChild(a);
@@ -361,6 +381,7 @@
     lastPages = pages;
     paintCounts();
     paintActive();
+    paintSort();
     return clamped;
   }
   var lastPages = 1;
@@ -564,13 +585,67 @@
   }
 
   // ---- sort ------------------------------------------------------------------------------
+  // Ties fall back to Title, then Organization, then archive order, in both directions; undated years and
+  // unrecorded sizes go last whichever way the column runs.
+  var SORTS = { n: "Organization", t: "Title", y: "Year", b: "Size" };
+  var SLUG = { n: "organization", t: "title", y: "year", b: "size" };
+  var LEGACY = { n: ["n", 1], t: ["t", 1], o: ["y", 1], w: ["y", -1] }; // the old ?s= values
+  var tc = function (a, b) { return a.r - b.r || coll.compare(a.s, b.s); };
   function order() {
-    var s = state.s;
+    var s = state.s, d = state.d;
     ord = recs.slice().sort(function (a, b) {
-      if (s === "t") return coll.compare(a.title, b.title) || a.n - b.n;
-      var d = s === "o" ? (a.ys || 9999) - (b.ys || 9999) : s === "w" ? b.ys - a.ys : 0;
-      return d || a.n - b.n;
+      var c;
+      if (s === "n" || s === "t") {
+        var x = s === "n" ? a.ko : a.kt, y = s === "n" ? b.ko : b.kt;
+        if ((x.r === 9) !== (y.r === 9)) return x.r === 9 ? 1 : -1; // nothing to sort on goes last either way
+        c = d * tc(x, y);
+      } else {
+        var u = s === "y" ? a.ys : a.bytes, v = s === "y" ? b.ys : b.bytes;
+        if (!u !== !v) return u ? -1 : 1; // undated or unrecorded goes last either way
+        c = u && v ? d * (u - v) : 0;
+      }
+      return c || tc(a.kt, b.kt) || tc(a.ko, b.ko) || a.n - b.n;
     });
+  }
+  var heads = {}, dirBtn = document.createElement("button");
+  dirBtn.type = "button";
+  dirBtn.id = "dir";
+  sortSel.closest("label").insertAdjacentElement("afterend", dirBtn);
+  Array.prototype.forEach.call(table.tHead.rows[0].cells, function (th, i) {
+    var k = "tnyb"[i];
+    if (!k) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.k = k;
+    b.appendChild(document.createTextNode(th.textContent));
+    var mark = document.createElement("span");
+    mark.setAttribute("aria-hidden", "true");
+    mark.className = "ar";
+    b.appendChild(mark);
+    th.textContent = "";
+    th.appendChild(b);
+    heads[k] = { th: th, mark: mark };
+  });
+  function sortText() { return SORTS[state.s] + ", " + (state.d > 0 ? "ascending" : "descending"); }
+  function paintSort() {
+    sortSel.value = state.s;
+    dirBtn.textContent = state.d > 0 ? "Ascending " : "Descending ";
+    var ar = document.createElement("span");
+    ar.className = "ar";
+    ar.textContent = state.d > 0 ? "↑" : "↓";
+    dirBtn.appendChild(ar);
+    dirBtn.setAttribute("aria-label", "Sort direction: " + (state.d > 0 ? "ascending" : "descending") + ". Switch.");
+    Object.keys(heads).forEach(function (k) {
+      var on = k === state.s;
+      heads[k].th.setAttribute("aria-sort", on ? (state.d > 0 ? "ascending" : "descending") : "none");
+      heads[k].mark.textContent = on ? (state.d > 0 ? " ↑" : " ↓") : "";
+    });
+  }
+  // A change of sort: new order, back to page 1, address replaced, one announcement.
+  function setSort(key, dir) {
+    state.s = key; state.d = dir;
+    order(); update(); save(false);
+    note.textContent = "Sorted by " + sortText();
   }
 
   // ---- URL state -------------------------------------------------------------------------
@@ -585,7 +660,8 @@
     });
     if (state.yf !== null) p.push("yf=" + state.yf);
     if (state.yt !== null) p.push("yt=" + state.yt);
-    if (state.s !== "n") p.push("s=" + state.s);
+    if (state.s !== "n") p.push("sort=" + SLUG[state.s]);
+    if (state.d < 0) p.push("dir=desc");
     if (page > 1) p.push("page=" + page);
     return p.join("&");
   }
@@ -601,7 +677,7 @@
   // Reads the address into state. Anything unknown or malformed is skipped; returns true when something was.
   function read() {
     var bad = false, seen = {};
-    state.q = ""; state.s = "n"; state.yf = state.yt = null; state.page = 1;
+    state.q = ""; state.s = "n"; state.d = 1; state.yf = state.yt = null; state.page = 1;
     facets.forEach(function (f) { f.sel.clear(); });
     location.search.replace(/^\?/, "").split("&").forEach(function (part) {
       if (!part) return;
@@ -613,7 +689,12 @@
         var t = dec(raw);
         if (t === null) bad = true; else state.q = t;
       } else if (key === "s") {
-        if (["n", "t", "o", "w"].indexOf(raw) > -1) state.s = raw; else bad = true;
+        if (LEGACY[raw]) { state.s = LEGACY[raw][0]; state.d = LEGACY[raw][1]; } else bad = true;
+      } else if (key === "sort") {
+        var sk = Object.keys(SLUG).filter(function (k) { return SLUG[k] === raw; })[0];
+        if (sk) { state.s = sk; } else bad = true;
+      } else if (key === "dir") {
+        if (raw === "asc" || raw === "desc") { state.d = raw === "desc" ? -1 : 1; } else bad = true;
       } else if (key === "page") {
         if (/^[1-9]\d{0,6}$/.test(raw)) state.page = +raw; else bad = true;
       } else if (key === "yf" || key === "yt") {
@@ -634,7 +715,7 @@
   }
 
   var dirty = read();
-  if (state.s !== "n") order();
+  order();
   if (update(true) || dirty) save(false);
 
   window.addEventListener("popstate", function () { read(); order(); update(true); });
@@ -645,7 +726,14 @@
     clearTimeout(timer);
     timer = setTimeout(function () { update(); save(false); }, 100);
   });
-  sortSel.addEventListener("change", function () { state.s = sortSel.value; order(); update(); save(false); });
+  sortSel.addEventListener("change", function () { setSort(sortSel.value, state.d); });
+  dirBtn.addEventListener("click", function () { setSort(state.s, -state.d); });
+  table.tHead.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-k]");
+    if (!b) return;
+    setSort(b.dataset.k, b.dataset.k === state.s ? -state.d : 1);
+    b.focus();
+  });
   document.getElementById("clear").addEventListener("click", function () {
     state.q = "";
     q.value = "";

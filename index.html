@@ -17,8 +17,8 @@ title: Style Guide Archives
       <select id="s">
         <option value="n">Organization</option>
         <option value="t">Title</option>
-        <option value="o">Oldest first</option>
-        <option value="w">Newest first</option>
+        <option value="y">Year</option>
+        <option value="b">Size</option>
       </select>
     </label>
   </div>
@@ -41,7 +41,7 @@ title: Style Guide Archives
     {%- for g in data.guides limit: per %}
       {%- assign ext = g.u | split: "." | last | downcase %}
       <tr data-n="{{ forloop.index0 }}" data-ys="{{ g.ys }}">
-        <td class="t"><a href="{% if ext == 'pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
+        <td class="t"><a target="_blank" rel="noopener" href="{% if ext == 'pdf' %}{{ viewer }}?file={{ g.u | url_encode }}{% else %}{{ g.u }}{% endif %}">{{ g.t | escape }}</a></td>
         <td class="o">{{ g.o | escape }}</td>
         <td class="y">{{ g.y }}</td>
         <td class="s">{{ g.s }}</td>
