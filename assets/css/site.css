@@ -69,6 +69,11 @@ td.o{width:28%;color:var(--soft)}
 td.y,td.s{white-space:nowrap;color:var(--soft);font-variant-numeric:lining-nums tabular-nums}
 td.s{text-align:right;padding-right:0}
 th:last-child{text-align:right;padding-right:0}
+th button{min-height:24px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:inherit;cursor:pointer}
+th button:hover,th[aria-sort="ascending"] button,th[aria-sort="descending"] button{color:var(--ink)}
+th button:hover{text-decoration:underline;text-decoration-color:var(--rule);text-decoration-thickness:2px;text-underline-offset:3px}
+.ar{font-family:Arial,Helvetica,sans-serif}
+#dir{height:42px;padding:0 14px;border:1px solid var(--ink);border-radius:0;background:var(--field);color:var(--ink);font:1rem var(--text);cursor:pointer}
 
 .pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 24px;margin:0 0 6px}
 #pager-bottom .pager{margin:10px 0 0}
