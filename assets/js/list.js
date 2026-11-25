@@ -10,8 +10,26 @@
   var panel = document.getElementById("panel");
   var activeBox = document.getElementById("active");
   var metaEl = document.getElementById("facet-meta");
+  var pagerTop = document.getElementById("pager-top");
+  var pagerBottom = document.getElementById("pager-bottom");
+  var heading = document.getElementById("guides-h");
   if (!body || !q) return;
 
+  // The page ships the first PER rows so it stays small and works without JavaScript. The whole list comes from
+  // guides.json; only the current page of it is ever drawn.
+  var PER = +table.getAttribute("data-per") || 100;
+  var VIEWER = table.getAttribute("data-viewer") || "";
+  fetch(table.getAttribute("data-src"))
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(start)
+    .catch(function () {
+      var p = document.createElement("p");
+      p.className = "plain";
+      p.textContent = "The rest of the list did not load. Reload the page to try again.";
+      table.insertAdjacentElement("afterend", p);
+    });
+
+  function start(guides) {
   var meta = metaEl ? JSON.parse(metaEl.textContent) : {};
   var kindLabel = {};
   (meta.categories || []).forEach(function (c) { kindLabel[c.slug] = c.label; });
@@ -47,19 +65,26 @@
     return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   }
 
-  var rows = Array.prototype.slice.call(body.rows);
-  var total = rows.length;
-  var recs = rows.map(function (r) {
-    var one = function (a) { return r.getAttribute("data-" + a) || NR; };
-    var many = function (a) { var s = r.getAttribute("data-" + a); return s ? s.split("|").filter(function (v, i, a) { return a.indexOf(v) === i; }) : [NR]; };
-    var ys = +r.getAttribute("data-ys") || 0;
-    var v = {
-      c: [one("c")], d: [one("d")], i: [one("i")], l: many("l"), f: [FORMATS[r.getAttribute("data-f")] || NR],
-      g: [one("g")], k: many("k"), e: [era(ys)], x: [one("x")],
-      b: [size(+r.getAttribute("data-b"))], p: [length(+r.getAttribute("data-p"))]
+  var total = guides.length;
+  var recs = guides.map(function (g, n) {
+    var one = function (a) { return g[a] || NR; };
+    var many = function (a) {
+      var s = g[a];
+      if (!s || !s.length) return [NR];
+      return (Array.isArray(s) ? s : [s]).filter(function (v, i, a) { return a.indexOf(v) === i; });
     };
-    return { r: r, v: v, n: +r.getAttribute("data-n"), ys: ys, text: norm(r.textContent), title: norm(r.cells[0].textContent), fail: 0, shown: true };
+    var ys = +g.ys || 0;
+    var ext = String(g.u).split(".").pop().toLowerCase();
+    var v = {
+      c: [one("c")], d: [one("d")], i: [one("i")], l: many("l"), f: [FORMATS[ext] || NR],
+      g: [one("g")], k: many("k"), e: [era(ys)], x: [one("x")],
+      b: [size(+g.b)], p: [length(+g.p)]
+    };
+    return { g: g, v: v, n: n, ys: ys, ext: ext, text: norm([g.t, g.o, g.y, g.s].join(" ")), title: norm(g.t), fail: 0 };
   });
+  var ord = recs; // recs in the current sort order
+  var matched = []; // the guides that pass every filter, in that order
+  var coll = new Intl.Collator();
 
   function label(k, v) { return k === "c" && kindLabel[v] ? kindLabel[v] : v; }
 
@@ -117,7 +142,7 @@
   var yearMin = 0, yearMax = 0;
   recs.forEach(function (x) { if (x.ys) { yearMin = yearMin ? Math.min(yearMin, x.ys) : x.ys; yearMax = Math.max(yearMax, x.ys); } });
 
-  var state = { q: "", s: "n", yf: null, yt: null };
+  var state = { q: "", s: "n", yf: null, yt: null, page: 1 };
   var open = null;
   var cells = {}; // value -> { btn, n, li } for the open panel
   var yfIn = null, ytIn = null, findIn = null;
@@ -125,9 +150,9 @@
   // ---- filtering -------------------------------------------------------------------------
   function run() {
     var words = norm(state.q).split(/\s+/).filter(Boolean);
-    var shown = 0;
-    for (var i = 0; i < recs.length; i++) {
-      var x = recs[i], fail = 0;
+    matched = [];
+    for (var i = 0; i < ord.length; i++) {
+      var x = ord[i], fail = 0;
       for (var j = 0; j < facets.length; j++) {
         var f = facets[j];
         if (f.sel.size) {
@@ -142,11 +167,9 @@
         if (x.text.indexOf(words[w]) === -1) { fail |= SEARCH; break; }
       }
       x.fail = fail;
-      var ok = fail === 0;
-      if (ok !== x.shown) { x.shown = ok; x.r.hidden = !ok; }
-      if (ok) shown++;
+      if (fail === 0) matched.push(x);
     }
-    return shown;
+    return matched.length;
   }
 
   function anyFilter() {
@@ -214,16 +237,152 @@
     activeBox.appendChild(frag);
   }
 
-  function update() {
+  // ---- rows and pages ---------------------------------------------------------------------
+  var fmt = function (n) { return n.toLocaleString("en-US"); };
+  var note = document.createElement("span"); // "Page 3 of 12", read out by the status region
+  note.className = "sr";
+  var countText = document.createTextNode("");
+  count.textContent = "";
+  count.appendChild(countText);
+  count.appendChild(note);
+
+  function rowFor(x) {
+    var g = x.g, tr = document.createElement("tr");
+    tr.dataset.n = x.n;
+    tr.dataset.ys = x.ys;
+    var cell = function (cls, text) { var td = document.createElement("td"); td.className = cls; td.textContent = text; tr.appendChild(td); return td; };
+    var a = document.createElement("a");
+    a.href = x.ext === "pdf" ? VIEWER + "?file=" + encodeURIComponent(g.u) : g.u;
+    a.textContent = g.t;
+    cell("t", "").appendChild(a);
+    cell("o", g.o);
+    cell("y", g.y);
+    cell("s", g.s);
+    return tr;
+  }
+  function paintRows() {
+    var from = (state.page - 1) * PER;
+    var frag = document.createDocumentFragment();
+    matched.slice(from, from + PER).forEach(function (x) { frag.appendChild(rowFor(x)); });
+    body.textContent = "";
+    body.appendChild(frag);
+  }
+
+  // Page numbers to show: first, last, the current page and two either side (one on a phone); a gap of one page is shown, not dotted.
+  var narrowQ = window.matchMedia("(max-width:720px)");
+  function pageList(pages) {
+    var out = [], last = 0;
+    for (var p = 1; p <= pages; p++) {
+      if (p === 1 || p === pages || Math.abs(p - state.page) <= (narrowQ.matches ? 1 : 2)) {
+        if (p - last === 2) out.push(last + 1);
+        else if (p - last > 2) out.push(0);
+        out.push(p);
+        last = p;
+      }
+    }
+    return out;
+  }
+  function item(ul, node) { var li = document.createElement("li"); li.appendChild(node); ul.appendChild(li); return li; }
+  function pageLink(p, text, hidden) {
+    var a = document.createElement("a");
+    a.href = location.pathname + (query(p) ? "?" + query(p) : "");
+    a.dataset.p = p;
+    if (hidden) a.appendChild(document.createTextNode(text));
+    else {
+      var sr = document.createElement("span");
+      sr.className = "sr";
+      sr.textContent = "Page ";
+      a.appendChild(sr);
+      a.appendChild(document.createTextNode(text));
+    }
+    return a;
+  }
+  function paintPager(box, which, shown, pages) {
+    box.textContent = "";
+    box.hidden = pages < 2;
+    if (pages < 2) return;
+    var nav = document.createElement("nav");
+    nav.className = "pager";
+    nav.setAttribute("aria-label", "Pagination, " + which);
+    var from = (state.page - 1) * PER + 1, to = Math.min(shown, state.page * PER);
+    var p = document.createElement("p");
+    p.textContent = "Showing " + fmt(from) + " to " + fmt(to) + " of " + fmt(shown) + " guides";
+    nav.appendChild(p);
+    var ul = document.createElement("ul");
+    var edge = function (n, text, cls) {
+      var node;
+      if (n < 1 || n > pages) { node = document.createElement("span"); node.textContent = text; node.setAttribute("aria-hidden", "true"); }
+      else node = pageLink(n, text, true);
+      if (n < 1 || n > pages) node.className = "dis";
+      item(ul, node).className = cls;
+    };
+    edge(state.page - 1, "Previous", "prev");
+    pageList(pages).forEach(function (n) {
+      var li;
+      if (n === 0) {
+        var gap = document.createElement("span");
+        gap.textContent = "…";
+        gap.setAttribute("aria-hidden", "true");
+        li = item(ul, gap);
+        li.className = "gap";
+      } else if (n === state.page) {
+        var cur = document.createElement("span");
+        cur.setAttribute("aria-current", "page");
+        var sr = document.createElement("span");
+        sr.className = "sr";
+        sr.textContent = "Page ";
+        cur.appendChild(sr);
+        cur.appendChild(document.createTextNode(n));
+        li = item(ul, cur);
+      } else {
+        li = item(ul, pageLink(n, String(n), false));
+      }
+    });
+    edge(state.page + 1, "Next", "next");
+    nav.appendChild(ul);
+    box.appendChild(nav);
+  }
+
+  // Returns true when the requested page was past the last one and was moved back to it.
+  function update(keepPage) {
     var shown = run();
-    var all = total.toLocaleString("en-US");
-    count.textContent = shown === total ? all + " guides" : shown.toLocaleString("en-US") + " of " + all + " guides";
+    var pages = Math.max(1, Math.ceil(shown / PER)), clamped = false;
+    if (!keepPage) state.page = 1;
+    else if (state.page > pages) { state.page = pages; clamped = true; }
+    var all = fmt(total);
+    countText.nodeValue = shown === total ? all + " guides" : fmt(shown) + " of " + all + " guides";
+    note.textContent = "";
     none.hidden = shown !== 0;
     table.hidden = shown === 0;
     document.getElementById("clear").textContent = anyFilter() ? "Clear all" : "Clear search";
+    paintRows();
+    paintPager(pagerTop, "top", shown, pages);
+    paintPager(pagerBottom, "bottom", shown, pages);
+    lastPages = pages;
     paintCounts();
     paintActive();
+    return clamped;
   }
+  var lastPages = 1;
+
+  // A page change from the pager: new address, back to the top of the table, focus on its heading, one announcement.
+  function goPage(n) {
+    state.page = n;
+    update(true);
+    save(true);
+    note.textContent = "Page " + state.page + " of " + lastPages;
+    pagerTop.scrollIntoView();
+    heading.focus({ preventScroll: true });
+  }
+  narrowQ.addEventListener("change", function () { paintPager(pagerTop, "top", matched.length, lastPages); paintPager(pagerBottom, "bottom", matched.length, lastPages); });
+  function onPager(e) {
+    var a = e.target.closest("a[data-p]");
+    if (!a || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    goPage(+a.dataset.p);
+  }
+  pagerTop.addEventListener("click", onPager);
+  pagerBottom.addEventListener("click", onPager);
 
   // ---- panel -----------------------------------------------------------------------------
   function valueButton(f, v) {
@@ -407,21 +566,19 @@
   // ---- sort ------------------------------------------------------------------------------
   function order() {
     var s = state.s;
-    var sorted = recs.slice().sort(function (a, b) {
-      if (s === "t") return a.title.localeCompare(b.title) || a.n - b.n;
+    ord = recs.slice().sort(function (a, b) {
+      if (s === "t") return coll.compare(a.title, b.title) || a.n - b.n;
       var d = s === "o" ? (a.ys || 9999) - (b.ys || 9999) : s === "w" ? b.ys - a.ys : 0;
       return d || a.n - b.n;
     });
-    var frag = document.createDocumentFragment();
-    sorted.forEach(function (x) { frag.appendChild(x.r); });
-    body.appendChild(frag);
   }
 
   // ---- URL state -------------------------------------------------------------------------
   // ?q=rail&g=Europe&k=Poland,Czechia&e=1970s&yf=1960&yt=1980&s=t   Values are percent-encoded one by one, so a
   // comma inside a value never splits it.
-  function query() {
+  function query(page) {
     var p = [];
+    if (page === undefined) page = state.page;
     if (state.q) p.push("q=" + encodeURIComponent(state.q));
     facets.forEach(function (f) {
       if (f.sel.size) p.push(f.k + "=" + f.vals.filter(function (v) { return f.sel.has(v); }).map(encodeURIComponent).join(","));
@@ -429,6 +586,7 @@
     if (state.yf !== null) p.push("yf=" + state.yf);
     if (state.yt !== null) p.push("yt=" + state.yt);
     if (state.s !== "n") p.push("s=" + state.s);
+    if (page > 1) p.push("page=" + page);
     return p.join("&");
   }
   // Filters push a history entry so Back undoes them; typing and sorting replace the current one.
@@ -443,7 +601,7 @@
   // Reads the address into state. Anything unknown or malformed is skipped; returns true when something was.
   function read() {
     var bad = false, seen = {};
-    state.q = ""; state.s = "n"; state.yf = state.yt = null;
+    state.q = ""; state.s = "n"; state.yf = state.yt = null; state.page = 1;
     facets.forEach(function (f) { f.sel.clear(); });
     location.search.replace(/^\?/, "").split("&").forEach(function (part) {
       if (!part) return;
@@ -456,6 +614,8 @@
         if (t === null) bad = true; else state.q = t;
       } else if (key === "s") {
         if (["n", "t", "o", "w"].indexOf(raw) > -1) state.s = raw; else bad = true;
+      } else if (key === "page") {
+        if (/^[1-9]\d{0,6}$/.test(raw)) state.page = +raw; else bad = true;
       } else if (key === "yf" || key === "yt") {
         if (/^\d{1,4}$/.test(raw)) state[key] = +raw; else bad = true;
       } else if (DEFS.some(function (d) { return d.k === key; })) {
@@ -475,10 +635,9 @@
 
   var dirty = read();
   if (state.s !== "n") order();
-  update();
-  if (dirty) save(false);
+  if (update(true) || dirty) save(false);
 
-  window.addEventListener("popstate", function () { read(); order(); update(); });
+  window.addEventListener("popstate", function () { read(); order(); update(true); });
 
   var timer;
   q.addEventListener("input", function () {
@@ -486,11 +645,12 @@
     clearTimeout(timer);
     timer = setTimeout(function () { update(); save(false); }, 100);
   });
-  sortSel.addEventListener("change", function () { state.s = sortSel.value; order(); save(false); });
+  sortSel.addEventListener("change", function () { state.s = sortSel.value; order(); update(); save(false); });
   document.getElementById("clear").addEventListener("click", function () {
     state.q = "";
     q.value = "";
     clearFilters();
     update(); save(true); q.focus();
   });
+  } // start
 })();
