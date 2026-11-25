@@ -20590,13 +20590,9 @@ PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
       return;
     }
     const fileURL = URL.parse(file, window.location);
-    const fileOrigin = fileURL?.origin;
     // Style Guide Archives: guides are served from files.adsb.cc (Cloudflare R2). Only .pdf files open.
     const isPdf = /\.pdf$/i.test(fileURL?.pathname ?? "");
     if (isPdf && /^https:\/\/files\.adsb\.cc\/style-guide-archives-[a-z-]+\//.test(fileURL?.href ?? "")) {
-      return;
-    }
-    if (isPdf && fileOrigin === viewerOrigin) {
       return;
     }
     const ex = new Error("file origin does not match viewer's");

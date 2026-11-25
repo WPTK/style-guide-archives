@@ -5,7 +5,7 @@ preload_data: true
 {%- assign data = site.data.guides -%}
 {%- assign total = data.guides | size -%}
 {%- assign viewer = '/pdfjs/web/viewer.html' | relative_url -%}
-{%- assign per = 100 -%}
+{%- assign per = 50 -%}
 <main class="page">
   <header class="top">
     <h1>Style Guide Archives</h1>
@@ -14,7 +14,7 @@ preload_data: true
 
   <div class="tools" role="search">
     <label class="field"><span>Search</span><input id="q" type="search" autocomplete="off" spellcheck="false"></label>
-    <label class="field js-only"><span>Sort</span>
+    <label class="field js-only phone-only"><span>Sort</span>
       <select id="s">
         <option value="n">Organization</option>
         <option value="t">Title</option>
@@ -40,11 +40,11 @@ preload_data: true
     <tbody role="rowgroup">
     {%- for g in data.guides limit: per %}
       {%- assign ext = g.u | split: "." | last | downcase %}
-      <tr role="row" data-n="{{ forloop.index0 }}" data-ys="{{ g.ys }}">
+      <tr role="row">
         <td class="t" role="cell"><a target="_blank" rel="noopener" dir="auto"{% if ext == 'pdf' %} href="{{ viewer }}?file={{ g.u | url_encode }}"{% elsif g.u contains 'https://' %} href="{{ g.u | escape }}"{% endif %}>{{ g.t | escape }}</a></td>
-        <td class="o" role="cell" dir="auto">{{ g.o | escape }}</td>
-        <td class="y" role="cell">{{ g.y }}</td>
-        <td class="s" role="cell">{{ g.s }}</td>
+        <td class="o" role="cell" data-label="Organization" dir="auto">{{ g.o | escape }}</td>
+        <td class="y" role="cell" data-label="Year">{{ g.y }}</td>
+        <td class="s" role="cell" data-label="Size">{{ g.s }}</td>
       </tr>
     {%- endfor %}
     </tbody>

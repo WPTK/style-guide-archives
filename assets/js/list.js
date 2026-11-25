@@ -18,7 +18,7 @@
 
   // The page ships the first PER rows so it stays small and works without JavaScript. The whole list comes from
   // guides.json; only the current page of it is ever drawn.
-  var PER = +table.getAttribute("data-per") || 100;
+  var PER = +table.getAttribute("data-per") || 50;
   var VIEWER = table.getAttribute("data-viewer") || "";
   fetch(table.getAttribute("data-src"))
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -305,10 +305,17 @@
 
   function rowFor(x) {
     var g = x.g, tr = document.createElement("tr");
-    tr.dataset.n = x.n;
-    tr.dataset.ys = x.ys;
     tr.setAttribute("role", "row"); // kept when the table is flattened to blocks on a phone
-    var cell = function (cls, text) { var td = document.createElement("td"); td.className = cls; td.setAttribute("role", "cell"); td.textContent = text; tr.appendChild(td); return td; };
+    // data-label feeds the column name shown before each value when the table is flattened on a phone (site.css)
+    var cell = function (cls, text, name) {
+      var td = document.createElement("td");
+      td.className = cls;
+      td.setAttribute("role", "cell");
+      if (name) td.setAttribute("data-label", name);
+      td.textContent = text;
+      tr.appendChild(td);
+      return td;
+    };
     var a = document.createElement("a");
     a.target = "_blank";
     a.rel = "noopener";
@@ -317,9 +324,9 @@
     else if (/^https:\/\//.test(g.u)) a.href = g.u;
     a.textContent = g.t;
     cell("t", "").appendChild(a);
-    cell("o", g.o).dir = "auto";
-    cell("y", g.y);
-    cell("s", g.s);
+    cell("o", g.o, "Organization").dir = "auto";
+    cell("y", g.y, "Year");
+    cell("s", g.s, "Size");
     return tr;
   }
   function paintRows() {
@@ -330,8 +337,8 @@
     body.appendChild(frag);
   }
 
-  // Page numbers to show: first, last, the current page and two either side (one on a phone, none under 340 px, as at 400% zoom); a gap of one page is shown, not dotted.
-  var narrowQ = window.matchMedia("(max-width:720px)"), tinyQ = window.matchMedia("(max-width:340px)");
+  // Page numbers to show: first, last, the current page and two either side (one on a phone, none up to 420 px, so "Next" stays on the line of the numbers); a gap of one page is shown, not dotted.
+  var narrowQ = window.matchMedia("(max-width:720px)"), tinyQ = window.matchMedia("(max-width:420px)");
   function pageList(pages) {
     var out = [], last = 0;
     for (var p = 1; p <= pages; p++) {
@@ -659,6 +666,7 @@
   var heads = {}, dirBtn = document.createElement("button");
   dirBtn.type = "button";
   dirBtn.id = "dir";
+  dirBtn.className = "phone-only"; // the headers sort at desktop widths; the select and this button are for the phone layout
   sortSel.closest("label").insertAdjacentElement("afterend", dirBtn);
   Array.prototype.forEach.call(table.tHead.rows[0].cells, function (th, i) {
     var k = "tnyb"[i];
@@ -678,12 +686,12 @@
   function sortText() { return SORTS[state.s] + ", " + (state.d > 0 ? "ascending" : "descending"); }
   function paintSort() {
     sortSel.value = state.s;
-    dirBtn.textContent = state.d > 0 ? "Ascending " : "Descending ";
+    dirBtn.textContent = state.d > 0 ? "Order: Ascending " : "Order: Descending ";
     var ar = document.createElement("span");
     ar.className = "ar";
     ar.textContent = state.d > 0 ? "↑" : "↓";
     dirBtn.appendChild(ar);
-    dirBtn.setAttribute("aria-label", "Sort direction: " + (state.d > 0 ? "ascending" : "descending") + ". Press to reverse.");
+    dirBtn.setAttribute("aria-label", "Order: " + (state.d > 0 ? "Ascending" : "Descending") + ". Press to reverse.");
     Object.keys(heads).forEach(function (k) {
       var on = k === state.s;
       if (on) heads[k].th.setAttribute("aria-sort", state.d > 0 ? "ascending" : "descending");
