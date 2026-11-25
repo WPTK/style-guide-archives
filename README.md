@@ -2,6 +2,8 @@
 
 A public archive of style guides from around the world: brand identity manuals and graphic standards, editorial style manuals, technical-writing guides, and software UI guidelines. They come from companies, governments and institutions that still exist and from ones that don't, such as the Bell System, NASA and the New York City Transit Authority.
 
+**Search and read the guides at [wptk.github.io/style-guide-archives](https://wptk.github.io/style-guide-archives/).** Each guide opens in the browser.
+
 ## Where the guides are
 
 The archive holds 976 files (975 PDFs and one EPUB, 11.75 GB). That is too big for one GitHub repository, so the guides are split across six repositories by category:
